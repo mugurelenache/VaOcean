@@ -2,7 +2,7 @@
 
 #include "VaOceanPluginPrivatePCH.h"
 
-UVaOceanBuoyancyComponent::UVaOceanBuoyancyComponent(const class FPostConstructInitializeProperties& PCIP)
+UVaOceanBuoyancyComponent::UVaOceanBuoyancyComponent(const class FObjectInitializer& PCIP)
 	: Super(PCIP)
 {
 	bWantsInitializeComponent = true;
@@ -28,7 +28,7 @@ UVaOceanBuoyancyComponent::UVaOceanBuoyancyComponent(const class FPostConstructI
 	LongitudinalMetacenter = FVector(0.0f, 0.0f, 150.0f);
 	TransverseMetacenter = FVector(0.0, 0.0, 50.0);
 
-	UpdatedComponent = NULL;
+	UpdatedPrimitive = NULL;
 }
 
 void UVaOceanBuoyancyComponent::InitializeComponent()
@@ -39,7 +39,7 @@ void UVaOceanBuoyancyComponent::InitializeComponent()
 	USkeletalMeshComponent* SkeletalMesh = GetOwner()->FindComponentByClass<USkeletalMeshComponent>();
 	if (SkeletalMesh != NULL)
 	{
-		UpdatedComponent = SkeletalMesh;
+		UpdatedPrimitive = SkeletalMesh;
 	}
 	else
 	{
@@ -47,11 +47,11 @@ void UVaOceanBuoyancyComponent::InitializeComponent()
 		UStaticMeshComponent* StaticMesh = GetOwner()->FindComponentByClass<UStaticMeshComponent>();
 		if (StaticMesh != NULL)
 		{
-			UpdatedComponent = StaticMesh;
+			UpdatedPrimitive = StaticMesh;
 		}
 	}
 
-	if (UpdatedComponent == NULL)
+	if (UpdatedPrimitive == NULL)
 	{
 		UE_LOG(LogVaOceanPhysics, Warning, TEXT("Can't find updated component for bouyancy actor!"));
 	}
@@ -94,15 +94,15 @@ void UVaOceanBuoyancyComponent::PerformWaveReaction(float DeltaTime)
 {
 	AActor* MyOwner = GetOwner();
 
-	if (!UpdatedComponent || MyOwner == NULL)
+	if (!UpdatedPrimitive || MyOwner == NULL)
 	{
 		return;
 	}
 
 	const FVector OldLocation = MyOwner->GetActorLocation();
 	const FRotator OldRotation = MyOwner->GetActorRotation();
-	const FVector OldLinearVelocity = UpdatedComponent->GetPhysicsLinearVelocity();
-	const FVector OldAngularVelocity = UpdatedComponent->GetPhysicsAngularVelocity();
+	const FVector OldLinearVelocity = UpdatedPrimitive->GetPhysicsLinearVelocity();
+	const FVector OldAngularVelocity = UpdatedPrimitive->GetPhysicsAngularVelocity();
 	const FVector OldCenterOfMassWorld = OldLocation + OldRotation.RotateVector(COMOffset);
 	const FVector OwnerScale = MyOwner->GetActorScale();
 
@@ -147,7 +147,7 @@ void UVaOceanBuoyancyComponent::PerformWaveReaction(float DeltaTime)
 		// Apply actor scale
 		WaveForce *= OwnerScale.X;// *OwnerScale.Y * OwnerScale.Z;
 
-		UpdatedComponent->AddForceAtLocation(WaveForce * Mass, TensionDotWorld);
+		UpdatedPrimitive->AddForceAtLocation(WaveForce * Mass, TensionDotWorld);
 	}
 
 	// Static metacentric forces (can be useful on small waves)
@@ -172,7 +172,7 @@ void UVaOceanBuoyancyComponent::PerformWaveReaction(float DeltaTime)
 		// Apply torque
 		TensionTorqueResult *= DeltaTime;
 		TensionTorqueResult *= OwnerScale.X;// *OwnerScale.Y * OwnerScale.Z;
-		UpdatedComponent->AddTorque(TensionTorqueResult);
+		UpdatedPrimitive->AddTorque(TensionTorqueResult);
 	}
 }
 

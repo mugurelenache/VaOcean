@@ -83,5 +83,5 @@ void GenGradientFoldingPS(float2 UV : TEXCOORD0, out float4 OutColor : SV_Target
 	float fold = max(1.0f - J, 0);
 
 	// Output
-	OutColor = float4(gradient, 0, fold);
+	OutColor = float4(gradient, fold, 1);
 }

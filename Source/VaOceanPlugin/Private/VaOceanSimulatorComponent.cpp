@@ -56,7 +56,7 @@ float Phillips(FVector2D K, FVector2D W, float v, float a, float dir_depend)
 //////////////////////////////////////////////////////////////////////////
 // Spectrum component
 
-UVaOceanSimulatorComponent::UVaOceanSimulatorComponent(const class FPostConstructInitializeProperties& PCIP)
+UVaOceanSimulatorComponent::UVaOceanSimulatorComponent(const class FObjectInitializer& PCIP)
 : Super(PCIP)
 {
 	bAutoActivate = true;
@@ -264,7 +264,7 @@ void UVaOceanSimulatorComponent::UpdateDisplacementMap(float WorldTime)
 			FUpdateSpectrumUniformBufferRef UniformBuffer = 
 				FUpdateSpectrumUniformBufferRef::CreateUniformBufferImmediate(Parameters, UniformBuffer_SingleFrame);
 
-			TShaderMapRef<FUpdateSpectrumCS> UpdateSpectrumCS(GetGlobalShaderMap());
+			TShaderMapRef<FUpdateSpectrumCS> UpdateSpectrumCS(GetGlobalShaderMap(GMaxRHIFeatureLevel));
 			RHICmdList.SetComputeShader(UpdateSpectrumCS->GetComputeShader());
 
 			UpdateSpectrumCS->SetParameters(RHICmdList, ImmutableParams.g_ActualDim,
@@ -318,11 +318,11 @@ void UVaOceanSimulatorComponent::UpdateDisplacementMap(float WorldTime)
 			SetRenderTarget(RHICmdList, TextureRenderTarget->GetRenderTargetTexture(), NULL);
 			RHICmdList.Clear(true, FLinearColor::Transparent, false, 0.f, false, 0, FIntRect());
 
-			TShaderMapRef<FQuadVS> QuadVS(GetGlobalShaderMap());
-			TShaderMapRef<FUpdateDisplacementPS> UpdateDisplacementPS(GetGlobalShaderMap());
+			TShaderMapRef<FQuadVS> QuadVS(GetGlobalShaderMap(GMaxRHIFeatureLevel));
+			TShaderMapRef<FUpdateDisplacementPS> UpdateDisplacementPS(GetGlobalShaderMap(GMaxRHIFeatureLevel));
 
 			static FGlobalBoundShaderState UpdateDisplacementBoundShaderState;
-			SetGlobalBoundShaderState(RHICmdList, UpdateDisplacementBoundShaderState, GQuadVertexDeclaration.VertexDeclarationRHI, *QuadVS, *UpdateDisplacementPS);
+			SetGlobalBoundShaderState(RHICmdList, GMaxRHIFeatureLevel, UpdateDisplacementBoundShaderState, GQuadVertexDeclaration.VertexDeclarationRHI, *QuadVS, *UpdateDisplacementPS);
 
 			UpdateDisplacementPS->SetParameters(RHICmdList, ImmutableParams.g_ActualDim,
 				ImmutableParams.g_InWidth, ImmutableParams.g_OutWidth, ImmutableParams.g_OutHeight,
@@ -361,11 +361,11 @@ void UVaOceanSimulatorComponent::UpdateDisplacementMap(float WorldTime)
 			SetRenderTarget(RHICmdList, TextureRenderTarget->GetRenderTargetTexture(), NULL);
 			RHICmdList.Clear(true, FLinearColor::Transparent, false, 0.f, false, 0, FIntRect());
 
-			TShaderMapRef<FQuadVS> QuadVS(GetGlobalShaderMap());
-			TShaderMapRef<FGenGradientFoldingPS> GenGradientFoldingPS(GetGlobalShaderMap());
+			TShaderMapRef<FQuadVS> QuadVS(GetGlobalShaderMap(GMaxRHIFeatureLevel));
+			TShaderMapRef<FGenGradientFoldingPS> GenGradientFoldingPS(GetGlobalShaderMap(GMaxRHIFeatureLevel));
 
 			static FGlobalBoundShaderState UpdateDisplacementBoundShaderState;
-			SetGlobalBoundShaderState(RHICmdList, UpdateDisplacementBoundShaderState, GQuadVertexDeclaration.VertexDeclarationRHI, *QuadVS, *GenGradientFoldingPS);
+			SetGlobalBoundShaderState(RHICmdList, GMaxRHIFeatureLevel, UpdateDisplacementBoundShaderState, GQuadVertexDeclaration.VertexDeclarationRHI, *QuadVS, *GenGradientFoldingPS);
 
 			GenGradientFoldingPS->SetParameters(RHICmdList, ImmutableParams.g_ActualDim,
 				ImmutableParams.g_InWidth, ImmutableParams.g_OutWidth, ImmutableParams.g_OutHeight,

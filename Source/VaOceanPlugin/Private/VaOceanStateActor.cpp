@@ -2,7 +2,7 @@
 
 #include "VaOceanPluginPrivatePCH.h"
 
-AVaOceanStateActor::AVaOceanStateActor(const class FPostConstructInitializeProperties& PCIP)
+AVaOceanStateActor::AVaOceanStateActor(const class FObjectInitializer& PCIP)
 	: Super(PCIP)
 {
 #if WITH_EDITORONLY_DATA
@@ -31,7 +31,7 @@ AVaOceanStateActor::AVaOceanStateActor(const class FPostConstructInitializePrope
 #endif // WITH_EDITORONLY_DATA
 
 	// We need a scene component to attach Icon sprite
-	TSubobjectPtr<USceneComponent> SceneComponent = PCIP.CreateDefaultSubobject<USceneComponent>(this, TEXT("SceneComp"));
+	USceneComponent* SceneComponent = PCIP.CreateDefaultSubobject<USceneComponent>(this, TEXT("SceneComp"));
 	RootComponent = SceneComponent;
 	RootComponent->Mobility = EComponentMobility::Static;
 
@@ -48,11 +48,6 @@ AVaOceanStateActor::AVaOceanStateActor(const class FPostConstructInitializePrope
 #endif // WITH_EDITORONLY_DATA
 
 	OceanSimulator = NULL;
-
-	PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.TickGroup = TG_PrePhysics;
-	SetRemoteRoleForBackwardsCompat(ROLE_SimulatedProxy);
-	bReplicates = true;
 }
 
 void AVaOceanStateActor::PreInitializeComponents()
