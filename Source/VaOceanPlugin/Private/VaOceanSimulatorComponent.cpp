@@ -244,7 +244,7 @@ void UVaOceanSimulatorComponent::UpdateDisplacementMap(float WorldTime)
 {
 	if (StateActor == NULL || DisplacementTarget == NULL || GradientTarget == NULL)
 		return;
-	
+
 	// ---------------------------- H(0) -> H(t), D(x, t), D(y, t) --------------------------------
 	FUpdateSpectrumCSPerFrame UpdateSpectrumCSPerFrameParams;
 	UpdateSpectrumCSPerFrameParams.g_Time = WorldTime * StateActor->GetSpectrumConfig().TimeScale;
@@ -261,7 +261,7 @@ void UVaOceanSimulatorComponent::UpdateDisplacementMap(float WorldTime)
 			FUpdateSpectrumUniformParameters Parameters;
 			Parameters.Time = PerFrameParams.g_Time;
 
-			FUpdateSpectrumUniformBufferRef UniformBuffer = 
+			FUpdateSpectrumUniformBufferRef UniformBuffer =
 				FUpdateSpectrumUniformBufferRef::CreateUniformBufferImmediate(Parameters, UniformBuffer_SingleFrame);
 
 			TShaderMapRef<FUpdateSpectrumCS> UpdateSpectrumCS(GetGlobalShaderMap(GMaxRHIFeatureLevel));
@@ -377,17 +377,37 @@ void UVaOceanSimulatorComponent::UpdateDisplacementMap(float WorldTime)
 			//RHICopyToResolveTarget(TextureRenderTarget->GetRenderTargetTexture(), TextureRenderTarget->TextureRHI, false, FResolveParams());
 
 			GenGradientFoldingPS->UnsetParameters(RHICmdList);
-	});
-	
+		});
+ 	
+	//Copy displacement render target data into DisplacementBuffer array
+	if (DisplacementTarget)
+ 	{
+		DisplacementTarget->GameThread_GetRenderTargetResource()->ReadFloat16Pixels(DisplacementBuffer);
+	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 // Buffered data access API
 
-FLinearColor UVaOceanSimulatorComponent::GetDisplacementColor(int32 X, int32 Y) const
+FLinearColor UVaOceanSimulatorComponent::GetDisplacementColor(float X, float Y) const
 {
-	return FLinearColor::Black;
+	if (DisplacementBuffer.Num() == 0)
+	{
+		UE_LOG(LogVaOcean, Warning, TEXT("DisplacementBuffer is empty."));
+		return FLinearColor::Black;
+	}
+
+	int32 Width = DisplacementTarget->GameThread_GetRenderTargetResource()->GetRenderTargetTexture()->GetSizeX();
+	int32 Height = DisplacementTarget->GameThread_GetRenderTargetResource()->GetRenderTargetTexture()->GetSizeY();
+
+	float NormalizedU = X >= 0 ? FMath::Fractional(X) : 1.0 + FMath::Fractional(X);
+	float NormalizedV = Y >= 0 ? FMath::Fractional(Y) : 1.0 + FMath::Fractional(Y);
+
+	int PixelX = NormalizedU * (Width - 1) + 1;
+	int PixelY = NormalizedV * (Height - 1) + 1;
+
+	return FLinearColor(DisplacementBuffer[(PixelY - 1) * Width + PixelX - 1]);
 }
 
 FLinearColor UVaOceanSimulatorComponent::GetGradientColor(int32 X, int32 Y) const

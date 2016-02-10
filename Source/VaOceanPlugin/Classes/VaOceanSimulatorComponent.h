@@ -31,7 +31,8 @@ class UVaOceanSimulatorComponent : public UActorComponent
 	// Buffered data access API
 
 	/** Displacement value from XY pixel */
-	FLinearColor GetDisplacementColor(int32 X, int32 Y) const;
+	UFUNCTION(BlueprintCallable, Category = "VaOcean")
+	FLinearColor GetDisplacementColor(float X, float Y) const;
 
 	/** Normals value from XY pixel */
 	FLinearColor GetGradientColor(int32 X, int32 Y) const;
@@ -98,5 +99,7 @@ protected:
 
 	// FFT wrap-up
 	FRadixPlan512 FFTPlan;
+
+	TArray<FFloat16Color> DisplacementBuffer;
 
 };
